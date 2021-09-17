@@ -21,6 +21,7 @@ package org.keycloak.benchmark.dataset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.keycloak.benchmark.dataset.config.DatasetConfig;
 import org.keycloak.models.ClientModel;
@@ -42,9 +43,9 @@ public class RealmContext {
     private final DatasetConfig config;
 
     private RealmModel realm;
-
-    private List<ClientModel> clients = Collections.synchronizedList(new ArrayList<>());
-
+    
+    private AtomicLong clientsCount = new AtomicLong(0L);
+    
     private List<RoleModel> realmRoles = new ArrayList<>();
 
     // All client roles of all clients
@@ -54,6 +55,8 @@ public class RealmContext {
 
     private final List<UserModel> users = Collections.synchronizedList(new ArrayList<>());
 
+    private AtomicLong usersCount = new AtomicLong(0L);
+    
     public RealmContext(DatasetConfig config) {
         this.config = config;
     }
@@ -71,17 +74,16 @@ public class RealmContext {
     }
 
     public void clientCreated(ClientModel client) {
-        clients.add(client);
+        clientsCount.incrementAndGet();
     }
 
-    public List<ClientModel> getClients() {
-        return clients;
+    public void setClientsCount(long newCount) {
+        clientsCount.set(newCount);
     }
-
-    public void setClients(List<ClientModel> clients) {
-        this.clients = Collections.synchronizedList(clients);
+    public long getClientsCount() {
+        return clientsCount.get();
     }
-
+    
     public void realmRoleCreated(RoleModel role) {
         realmRoles.add(role);
     }
@@ -119,10 +121,8 @@ public class RealmContext {
     }
 
     public void userCreated(UserModel user) {
-        this.users.add(user);
+        usersCount.incrementAndGet();
     }
-
-    public List<UserModel> getUsers() {
-        return users;
-    }
+    
+    public long getUsersCount() { return usersCount.get(); }
 }

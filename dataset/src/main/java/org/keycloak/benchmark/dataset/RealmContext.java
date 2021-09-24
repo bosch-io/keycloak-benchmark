@@ -30,10 +30,14 @@ import org.keycloak.models.RealmModel;
 import org.keycloak.models.RoleModel;
 import org.keycloak.models.UserModel;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Collection of objects, which were created and are related to the particular realm. This collection is "maintained" here to avoid
  * DB lookups as much as possible...
- *
+ * <p>
  * Caller should expect that many model instances obtained here should NOT be used for WRITE as they might be loaded to different transaction.
  *
  * @author <a href="mailto:mposolda@redhat.com">Marek Posolda</a>
@@ -43,9 +47,9 @@ public class RealmContext {
     private final DatasetConfig config;
 
     private RealmModel realm;
-    
-    private AtomicLong clientsCount = new AtomicLong(0L);
-    
+
+    final private AtomicLong clientsCount = new AtomicLong(0L);
+
     private List<RoleModel> realmRoles = new ArrayList<>();
 
     // All client roles of all clients
@@ -53,10 +57,8 @@ public class RealmContext {
 
     private List<GroupModel> groups = new ArrayList<>();
 
-    private final List<UserModel> users = Collections.synchronizedList(new ArrayList<>());
+    final  private AtomicLong usersCount = new AtomicLong(0L);
 
-    private AtomicLong usersCount = new AtomicLong(0L);
-    
     public RealmContext(DatasetConfig config) {
         this.config = config;
     }
@@ -80,10 +82,11 @@ public class RealmContext {
     public void setClientsCount(long newCount) {
         clientsCount.set(newCount);
     }
+
     public long getClientsCount() {
         return clientsCount.get();
     }
-    
+
     public void realmRoleCreated(RoleModel role) {
         realmRoles.add(role);
     }
@@ -123,6 +126,8 @@ public class RealmContext {
     public void userCreated(UserModel user) {
         usersCount.incrementAndGet();
     }
-    
-    public long getUsersCount() { return usersCount.get(); }
+
+    public long getUsersCount() {
+        return usersCount.get();
+    }
 }
